@@ -49,7 +49,7 @@ foreach ($line in $lines) {
         $newLines += $line
     }
 }
-Set-Content -Path $cargoTomlPath -Value $newLines -NoNewline
+$newLines | Out-File -FilePath $cargoTomlPath -Encoding utf8
 
 # 6. Commit the change
 git add $cargoTomlPath
