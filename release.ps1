@@ -39,7 +39,7 @@ Write-Host "New version: $newTag"
 # 5. Update Cargo.toml
 $cargoTomlPath = "./Cargo.toml"
 $cargoTomlContent = Get-Content $cargoTomlPath -Raw
-$newCargoTomlContent = $cargoTomlContent -replace '(version\s*=\s*")[^"]+(")', "`$1$newVersion`$2"
+$newCargoTomlContent = $cargoTomlContent -replace '(version\s*=\s*")[^"]+(")', ('$1' + $newVersion + '$2')
 Set-Content -Path $cargoTomlPath -Value $newCargoTomlContent
 
 # 6. Commit the change
@@ -47,7 +47,7 @@ git add $cargoTomlPath
 git commit -m "chore(release): bump version to $newTag"
 
 # 7. Tag the new commit
-git tag $newTag
+git tag -a $newTag -m "$newTag"
 
 # 8. Push commit and tag
 Write-Host "Pushing commit and tag to remote..."
