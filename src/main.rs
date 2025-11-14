@@ -31,13 +31,14 @@ fn main() {
     let args = CliArgs::parse();
     let timeout_duration = Duration::from_secs(args.timeout);
     let start_time = Instant::now();
+    let mut sys = System::new();
 
     loop {
         if start_time.elapsed() >= timeout_duration {
             std::process::exit(1); // Timeout
         }
 
-        if let Some(hwnd) = find_line_window() {
+        if let Some(hwnd) = find_line_window(&mut sys) {
             unsafe {
                 let _ = SendMessageW(hwnd, WM_CLOSE, WPARAM(0), LPARAM(0));
             }
@@ -48,8 +49,7 @@ fn main() {
     }
 }
 
-fn find_line_window() -> Option<HWND> {
-    let mut sys = System::new_all();
+fn find_line_window(sys: &mut System) -> Option<HWND> {
     sys.refresh_processes();
 
     let line_pid = sys
