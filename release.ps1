@@ -38,9 +38,18 @@ Write-Host "New version: $newTag"
 
 # 5. Update Cargo.toml
 $cargoTomlPath = "./Cargo.toml"
-$cargoTomlContent = Get-Content $cargoTomlPath -Raw
-$newCargoTomlContent = $cargoTomlContent -replace '(version\s*=\s*")[^"]+(")', ('$1' + $newVersion + '$2')
-Set-Content -Path $cargoTomlPath -Value $newCargoTomlContent
+$lines = Get-Content $cargoTomlPath
+$newLines = @()
+$updated = $false
+foreach ($line in $lines) {
+    if (-not $updated -and $line -match '^\s*version\s*=\s*') {
+        $newLines += 'version = "' + $newVersion + '"'
+        $updated = $true
+    } else {
+        $newLines += $line
+    }
+}
+Set-Content -Path $cargoTomlPath -Value $newLines -NoNewline
 
 # 6. Commit the change
 git add $cargoTomlPath
