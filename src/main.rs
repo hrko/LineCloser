@@ -17,7 +17,7 @@ use windows::Win32::{
 #[command(version, about, long_about = None)]
 struct CliArgs {
     /// Timeout in seconds to wait for the LINE window.
-    #[arg(short, long, default_value_t = 30)]
+    #[arg(short, long, default_value_t = 300)]
     timeout: u64,
 }
 
