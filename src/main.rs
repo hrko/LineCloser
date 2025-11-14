@@ -1,6 +1,9 @@
 #![windows_subsystem = "windows"]
 
+mod installer;
+
 use clap::Parser;
+use std::env;
 use std::thread;
 use std::time::{Duration, Instant};
 use sysinfo::System;
@@ -21,13 +24,22 @@ struct CliArgs {
     timeout: u64,
 }
 
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() > 1 {
+        run_line_closer();
+    } else {
+        installer::run_gui();
+    }
+}
+
 // A struct to pass data to the EnumWindows callback.
 struct EnumData {
     pid: u32,
     hwnd: Option<HWND>,
 }
 
-fn main() {
+fn run_line_closer() {
     let args = CliArgs::parse();
     let timeout_duration = Duration::from_secs(args.timeout);
     let start_time = Instant::now();
