@@ -51,8 +51,13 @@ foreach ($line in $lines) {
 }
 $newLines | Out-File -FilePath $cargoTomlPath -Encoding utf8
 
+# Run cargo update --offline to update Cargo.lock
+Write-Host "Running cargo update --offline..."
+cargo update --offline
+
 # 6. Commit the change
 git add $cargoTomlPath
+git add "./Cargo.lock" # Add Cargo.lock as well
 git commit -m "chore(release): bump version to $newTag"
 
 # 7. Tag the new commit
