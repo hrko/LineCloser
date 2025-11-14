@@ -39,7 +39,7 @@ fn main() {
 
         if let Some(hwnd) = find_line_window() {
             unsafe {
-                SendMessageW(hwnd, WM_CLOSE, WPARAM(0), LPARAM(0));
+                let _ = SendMessageW(hwnd, WM_CLOSE, WPARAM(0), LPARAM(0));
             }
             std::process::exit(0); // Success
         }
@@ -62,7 +62,7 @@ fn find_line_window() -> Option<HWND> {
         let mut enum_data = EnumData { pid, hwnd: None };
         let lparam = LPARAM(&mut enum_data as *mut _ as isize);
         unsafe {
-            EnumWindows(Some(enum_windows_proc), lparam);
+            let _ = EnumWindows(Some(enum_windows_proc), lparam);
         }
         return enum_data.hwnd;
     }
