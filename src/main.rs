@@ -8,7 +8,7 @@ use windows::Win32::{
     Foundation::{BOOL, HWND, LPARAM},
     UI::WindowsAndMessaging::{
         EnumWindows, GetWindow, GetWindowThreadProcessId, IsWindowVisible, ShowWindow,
-        GW_OWNER, SW_HIDE,
+        GW_OWNER, SW_HIDE, GetWindowLongPtrW, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
     },
 };
 
@@ -80,8 +80,10 @@ extern "system" fn enum_windows_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
     if window_pid == enum_data.pid {
         let is_visible = unsafe { IsWindowVisible(hwnd) };
         let owner = unsafe { GetWindow(hwnd, GW_OWNER) };
+        let ex_style = unsafe { GetWindowLongPtrW(hwnd, GWL_EXSTYLE) };
+        let is_tool_window = (ex_style & WS_EX_TOOLWINDOW.0 as isize) != 0;
 
-        if is_visible.as_bool() && owner.is_err() {
+        if is_visible.as_bool() && owner.is_err() && !is_tool_window {
             enum_data.hwnd = Some(hwnd);
             return BOOL(0); // Stop enumeration
         }
