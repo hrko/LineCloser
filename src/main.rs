@@ -5,10 +5,10 @@ use std::time::{Duration, Instant};
 use std::thread;
 use sysinfo::{System};
 use windows::Win32::{
-    Foundation::{BOOL, HWND, LPARAM},
+    Foundation::{BOOL, HWND, LPARAM, WPARAM},
     UI::WindowsAndMessaging::{
-        EnumWindows, GetWindow, GetWindowThreadProcessId, IsWindowVisible, ShowWindow,
-        GW_OWNER, SW_HIDE, GetWindowLongPtrW, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
+        EnumWindows, GetWindow, GetWindowThreadProcessId, IsWindowVisible, SendMessageW,
+        GW_OWNER, WM_CLOSE, GetWindowLongPtrW, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
     },
 };
 
@@ -39,7 +39,7 @@ fn main() {
 
         if let Some(hwnd) = find_line_window() {
             unsafe {
-                ShowWindow(hwnd, SW_HIDE);
+                SendMessageW(hwnd, WM_CLOSE, WPARAM(0), LPARAM(0));
             }
             std::process::exit(0); // Success
         }
