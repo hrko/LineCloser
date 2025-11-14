@@ -1,14 +1,14 @@
 #![windows_subsystem = "windows"]
 
 use clap::Parser;
-use std::time::{Duration, Instant};
 use std::thread;
-use sysinfo::{System};
+use std::time::{Duration, Instant};
+use sysinfo::System;
 use windows::Win32::{
     Foundation::{BOOL, HWND, LPARAM, WPARAM},
     UI::WindowsAndMessaging::{
-        EnumWindows, GetWindow, GetWindowThreadProcessId, IsWindowVisible, SendMessageW,
-        GW_OWNER, WM_CLOSE, GetWindowLongPtrW, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
+        EnumWindows, GetWindow, GetWindowLongPtrW, GetWindowThreadProcessId, IsWindowVisible,
+        SendMessageW, GWL_EXSTYLE, GW_OWNER, WM_CLOSE, WS_EX_TOOLWINDOW,
     },
 };
 
@@ -52,7 +52,8 @@ fn find_line_window() -> Option<HWND> {
     let mut sys = System::new_all();
     sys.refresh_processes();
 
-    let line_pid = sys.processes()
+    let line_pid = sys
+        .processes()
         .values()
         .find(|process| process.name().eq_ignore_ascii_case("LINE.exe"))
         .map(|process| process.pid().as_u32());
