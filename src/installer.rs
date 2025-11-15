@@ -24,21 +24,21 @@ pub struct InstallerGui {
     #[nwg_layout(parent: window, spacing: 4, margin: [8, 8, 8, 8])]
     grid: nwg::GridLayout,
 
-    #[nwg_control(text: "タイムアウト (秒):")]
-    #[nwg_layout_item(layout: grid, row: 0, col: 0)]
+    #[nwg_control(text: "LINE ウィンドウが現れるまで待機する最大時間（秒）:")]
+    #[nwg_layout_item(layout: grid, row: 0, col: 0, col_span: 3)]
     timeout_label: nwg::Label,
 
     #[nwg_control(text: "300")]
-    #[nwg_layout_item(layout: grid, row: 0, col: 1)]
+    #[nwg_layout_item(layout: grid, row: 0, col: 3)]
     timeout_input: nwg::TextInput,
 
     #[nwg_control(text: "インストール / 変更")]
-    #[nwg_layout_item(layout: grid, row: 1, col: 0, col_span: 2)]
+    #[nwg_layout_item(layout: grid, row: 1, col: 0, col_span: 4)]
     #[nwg_events( OnButtonClick: [InstallerGui::install_clicked] )]
     install_button: nwg::Button,
 
     #[nwg_control(text: "", readonly: true)]
-    #[nwg_layout_item(layout: grid, row: 2, col: 0, row_span: 4, col_span: 2)]
+    #[nwg_layout_item(layout: grid, row: 2, col: 0, row_span: 4, col_span: 4)]
     log_box: nwg::TextBox,
 }
 
