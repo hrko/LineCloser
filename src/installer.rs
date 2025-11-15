@@ -1,5 +1,11 @@
+#![windows_subsystem = "windows"]
+
+extern crate native_windows_derive as nwd;
+extern crate native_windows_gui as nwg;
+
 use directories::ProjectDirs;
-use eframe::{egui, NativeOptions};
+use nwd::NwgUi;
+use nwg::NativeUi;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -9,68 +15,69 @@ use winreg::RegKey;
 
 const APP_NAME: &str = "LineCloser";
 
-struct InstallerApp {
-    timeout_sec: String,
-    status_message: String,
+#[derive(Default, NwgUi)]
+pub struct InstallerGui {
+    #[nwg_control(size: (400, 200), position: (300, 300), title: "LineCloser Installer", flags: "WINDOW|VISIBLE")]
+    #[nwg_events( OnWindowClose: [nwg::stop_thread_dispatch()] )]
+    window: nwg::Window,
+
+    #[nwg_layout(parent: window, spacing: 5, margin: [10, 10, 10, 10])]
+    grid: nwg::GridLayout,
+
+    #[nwg_control(text: "Timeout (seconds):")]
+    #[nwg_layout_item(layout: grid, row: 0, col: 0)]
+    timeout_label: nwg::Label,
+
+    #[nwg_control(text: "300")]
+    #[nwg_layout_item(layout: grid, row: 0, col: 1)]
+    timeout_input: nwg::TextInput,
+
+    #[nwg_control(text: "Install / Update")]
+    #[nwg_layout_item(layout: grid, row: 1, col: 0, col_span: 2)]
+    #[nwg_events( OnButtonClick: [InstallerGui::install_clicked] )]
+    install_button: nwg::Button,
+
+    #[nwg_control(text: "Uninstall")]
+    #[nwg_layout_item(layout: grid, row: 2, col: 0, col_span: 2)]
+    #[nwg_events( OnButtonClick: [InstallerGui::uninstall_clicked] )]
+    uninstall_button: nwg::Button,
+
+    #[nwg_control(text: "")]
+    #[nwg_layout_item(layout: grid, row: 3, col: 0, col_span: 2)]
+    status_label: nwg::Label,
 }
 
-impl Default for InstallerApp {
-    fn default() -> Self {
-        Self {
-            timeout_sec: "300".to_string(),
-            status_message: "".to_string(),
+impl InstallerGui {
+    fn install_clicked(&self) {
+        let status = match self.timeout_input.text().parse::<u64>() {
+            Ok(timeout) => match install(timeout) {
+                Ok(path) => format!("Installed/Updated successfully to:\n{}", path.display()),
+                Err(e) => format!("Installation failed: {}", e),
+            },
+            Err(_) => "Invalid timeout value. Please enter a number.".to_string(),
+        };
+        self.status_label.set_text(&status);
+    }
+
+    fn uninstall_clicked(&self) {
+        let status = match uninstall() {
+            Ok(msg) => msg,
+            Err(e) => format!("Uninstallation failed: {}", e),
+        };
+        self.status_label.set_text(&status);
+
+        if status.starts_with("Uninstalling...") {
+            // Quit the app to allow self-deletion
+            nwg::stop_thread_dispatch();
         }
     }
 }
 
-impl eframe::App for InstallerApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("LineCloser Installer");
-            ui.separator();
-
-            ui.horizontal(|ui| {
-                ui.label("Timeout (seconds):");
-                ui.text_edit_singleline(&mut self.timeout_sec);
-            });
-
-            ui.separator();
-
-            if ui.button("Install / Update").clicked() {
-                self.status_message = match self.timeout_sec.parse::<u64>() {
-                    Ok(timeout) => match install(timeout) {
-                        Ok(path) => format!("Installed/Updated successfully to:\n{}", path.display()),
-                        Err(e) => format!("Installation failed: {}", e),
-                    },
-                    Err(_) => "Invalid timeout value. Please enter a number.".to_string(),
-                };
-            }
-
-            if ui.button("Uninstall").clicked() {
-                self.status_message = match uninstall() {
-                    Ok(msg) => msg,
-                    Err(e) => format!("Uninstallation failed: {}", e),
-                };
-                // Quit the app to allow self-deletion
-                if self.status_message.starts_with("Uninstalling...") {
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                }
-            }
-
-            ui.separator();
-            ui.label(&self.status_message);
-        });
-    }
-}
-
 pub fn run_gui() {
-    let native_options = NativeOptions::default();
-    eframe::run_native(
-        "LineCloser Installer",
-        native_options,
-        Box::new(|_cc| Ok(Box::new(InstallerApp::default()))),
-    )
-    .unwrap();
+    nwg::init().expect("Failed to init Native Windows GUI");
+    nwg::Font::set_global_family("Segoe UI").expect("Failed to set default font");
+    let _app = InstallerGui::build_ui(Default::default()).expect("Failed to build UI");
+    nwg::dispatch_thread_events();
 }
 
 fn get_install_path() -> Result<PathBuf, String> {
@@ -85,13 +92,14 @@ fn install(timeout: u64) -> Result<PathBuf, String> {
     let install_dir = get_install_path()?;
     fs::create_dir_all(&install_dir).map_err(|e| format!("Failed to create directory: {}", e))?;
 
-    let exe_path = env::current_exe().map_err(|e| format!("Failed to get current exe path: {}", e))?;
+    let exe_path =
+        env::current_exe().map_err(|e| format!("Failed to get current exe path: {}", e))?;
     let dest_path = install_dir.join(format!("{}.exe", APP_NAME));
 
     fs::copy(&exe_path, &dest_path).map_err(|e| format!("Failed to copy executable: {}", e))?;
 
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let path = PathBuf::from(r"Software\Microsoft\Windows\CurrentVersion\Run");
+    let path = r"Software\Microsoft\Windows\CurrentVersion\Run";
     let (key, _) = hkcu
         .create_subkey(&path)
         .map_err(|e| format!("Failed to create or open registry key: {}", e))?;
@@ -105,13 +113,13 @@ fn install(timeout: u64) -> Result<PathBuf, String> {
 
 fn uninstall() -> Result<String, String> {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let path = PathBuf::from(r"Software\Microsoft\Windows\CurrentVersion\Run");
+    let path = r"Software\Microsoft\Windows\CurrentVersion\Run";
 
-    let key = hkcu
-        .open_subkey_with_flags(&path, KEY_WRITE)
-        .map_err(|e| format!("Failed to open registry key: {}", e))?;
-    key.delete_value(APP_NAME)
-        .map_err(|e| format!("Failed to delete registry key (maybe not installed?): {}", e))?;
+    // Try to remove registry key
+    if let Ok(key) = hkcu.open_subkey_with_flags(path, KEY_WRITE) {
+        // Ignore error if value doesn't exist
+        let _ = key.delete_value(APP_NAME);
+    }
 
     let install_dir = get_install_path()?;
     let dest_path = install_dir.join(format!("{}.exe", APP_NAME));
@@ -131,5 +139,5 @@ fn uninstall() -> Result<String, String> {
         return Ok("Uninstalling... The application will now close.".to_string());
     }
 
-    Ok("Uninstalled successfully (Registry key removed).".to_string())
+    Ok("Uninstalled successfully (or was not installed).".to_string())
 }
