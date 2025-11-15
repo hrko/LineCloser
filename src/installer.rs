@@ -1,17 +1,14 @@
-#![windows_subsystem = "windows"]
-
 extern crate native_windows_derive as nwd;
 extern crate native_windows_gui as nwg;
 
-use directories::ProjectDirs;
-use nwd::NwgUi;
-use nwg::NativeUi;
 use std::env;
 use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
-use std::process::{self, Command};
-use std::os::windows::process::CommandExt;
+
+use directories::ProjectDirs;
+use nwd::NwgUi;
+use nwg::NativeUi;
 use sha2::{Digest, Sha256};
 use winreg::enums::*;
 use winreg::RegKey;
@@ -133,7 +130,10 @@ fn install<F: FnMut(&str)>(timeout: u64, mut log: F) -> Result<PathBuf, String> 
                 }
             }
             (Err(e), _) | (_, Err(e)) => {
-                log(&format!("ハッシュの計算に失敗しました ({}). ファイルを上書きします。", e));
+                log(&format!(
+                    "ハッシュの計算に失敗しました ({}). ファイルを上書きします。",
+                    e
+                ));
             }
         }
     }
