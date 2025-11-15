@@ -14,6 +14,7 @@ native-windows-gui = "1.0.12"
 native-windows-derive = "1.0.3"
 winreg = "0.52.0"
 directories = "5.0.1"
+sha2 = "0.10.8"
 
 [build-dependencies]
 embed-resource = "2.5.2"
