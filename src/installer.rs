@@ -13,11 +13,13 @@ use sha2::{Digest, Sha256};
 use winreg::enums::*;
 use winreg::RegKey;
 
-const APP_NAME: &str = "LineCloser";
+const APP_NAME: &str = env!("CARGO_PKG_NAME");
+const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+const APP_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 
 #[derive(Default, NwgUi)]
 pub struct InstallerGui {
-    #[nwg_control(size: (600, 240), position: (300, 300), title: "LineCloser インストーラー", flags: "WINDOW|VISIBLE")]
+    #[nwg_control(size: (600, 240), position: (300, 300), title: "インストーラー", flags: "WINDOW|VISIBLE")]
     #[nwg_events( OnWindowClose: [nwg::stop_thread_dispatch()] )]
     window: nwg::Window,
 
@@ -76,13 +78,14 @@ pub fn run_gui() {
         .build(&mut font)
         .expect("Failed to build font");
     nwg::Font::set_global_default(Some(font));
-    let _app = InstallerGui::build_ui(Default::default()).expect("Failed to build UI");
+    let app = InstallerGui::build_ui(Default::default()).expect("Failed to build UI");
+    app.window.set_text(&format!("{} インストーラー", APP_NAME));
     nwg::dispatch_thread_events();
 }
 
 fn get_install_path() -> Result<PathBuf, String> {
-    if let Some(proj_dirs) = ProjectDirs::from("com", "hrko", APP_NAME) {
-        Ok(proj_dirs.data_dir().to_path_buf())
+    if let Some(proj_dirs) = ProjectDirs::from("", APP_AUTHORS, APP_NAME) {
+        Ok(proj_dirs.data_local_dir().to_path_buf())
     } else {
         Err("Could not find user's data directory.".to_string())
     }
@@ -200,9 +203,9 @@ Read-Host | Out-Null
 
     key.set_value("DisplayName", &APP_NAME)
         .map_err(|e| format!("レジストリ値の設定に失敗しました: {}", e))?;
-    key.set_value("DisplayVersion", &"0.1.6")
+    key.set_value("DisplayVersion", &APP_VERSION)
         .map_err(|e| format!("レジストリ値の設定に失敗しました: {}", e))?;
-    key.set_value("Publisher", &"hrko")
+    key.set_value("Publisher", &APP_AUTHORS)
         .map_err(|e| format!("レジストリ値の設定に失敗しました: {}", e))?;
     let uninstall_command = format!(
         "powershell.exe -ExecutionPolicy Bypass -File \"{}\"",
