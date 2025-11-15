@@ -17,14 +17,14 @@ const APP_NAME: &str = "LineCloser";
 
 #[derive(Default, NwgUi)]
 pub struct InstallerGui {
-    #[nwg_control(size: (600, 200), position: (300, 300), title: "LineCloser Installer", flags: "WINDOW|VISIBLE")]
+    #[nwg_control(size: (600, 200), position: (300, 300), title: "LineCloser インストーラー", flags: "WINDOW|VISIBLE")]
     #[nwg_events( OnWindowClose: [nwg::stop_thread_dispatch()] )]
     window: nwg::Window,
 
     #[nwg_layout(parent: window, spacing: 5, margin: [10, 10, 10, 10])]
     grid: nwg::GridLayout,
 
-    #[nwg_control(text: "Timeout (seconds):")]
+    #[nwg_control(text: "タイムアウト (秒):")]
     #[nwg_layout_item(layout: grid, row: 0, col: 0)]
     timeout_label: nwg::Label,
 
@@ -32,12 +32,12 @@ pub struct InstallerGui {
     #[nwg_layout_item(layout: grid, row: 0, col: 1)]
     timeout_input: nwg::TextInput,
 
-    #[nwg_control(text: "Install / Update")]
+    #[nwg_control(text: "インストール / 更新")]
     #[nwg_layout_item(layout: grid, row: 1, col: 0)]
     #[nwg_events( OnButtonClick: [InstallerGui::install_clicked] )]
     install_button: nwg::Button,
 
-    #[nwg_control(text: "Uninstall")]
+    #[nwg_control(text: "アンインストール")]
     #[nwg_layout_item(layout: grid, row: 1, col: 1)]
     #[nwg_events( OnButtonClick: [InstallerGui::uninstall_clicked] )]
     uninstall_button: nwg::Button,
@@ -51,10 +51,10 @@ impl InstallerGui {
     fn install_clicked(&self) {
         let status = match self.timeout_input.text().parse::<u64>() {
             Ok(timeout) => match install(timeout) {
-                Ok(path) => format!("Installed/Updated successfully to:\n{}", path.display()),
-                Err(e) => format!("Installation failed: {}", e),
+                Ok(path) => format!("インストール/更新が成功しました: {}", path.display()),
+                Err(e) => format!("インストールに失敗しました: {}", e),
             },
-            Err(_) => "Invalid timeout value. Please enter a number.".to_string(),
+            Err(_) => "タイムアウトの値が無効です。数値を入力してください。".to_string(),
         };
         self.status_label.set_text(&status);
     }
@@ -62,11 +62,11 @@ impl InstallerGui {
     fn uninstall_clicked(&self) {
         let status = match uninstall() {
             Ok(msg) => msg,
-            Err(e) => format!("Uninstallation failed: {}", e),
+            Err(e) => format!("アンインストールに失敗しました: {}", e),
         };
         self.status_label.set_text(&status);
 
-        if status.starts_with("Uninstalling...") {
+        if status.starts_with("アンインストールしています...") {
             // Quit the app to allow self-deletion
             nwg::stop_thread_dispatch();
         }
@@ -136,8 +136,8 @@ fn uninstall() -> Result<String, String> {
             .spawn()
             .map_err(|e| format!("Failed to spawn self-delete process: {}", e))?;
 
-        return Ok("Uninstalling... The application will now close.".to_string());
+        return Ok("アンインストールしています... アプリケーションを終了します。".to_string());
     }
 
-    Ok("Uninstalled successfully (or was not installed).".to_string())
+    Ok("アンインストールが成功しました (またはインストールされていませんでした)。".to_string())
 }
