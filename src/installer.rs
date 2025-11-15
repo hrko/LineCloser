@@ -8,8 +8,9 @@ use nwd::NwgUi;
 use nwg::NativeUi;
 use std::env;
 use std::fs;
+use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{self, Command};
 use winreg::enums::*;
 use winreg::RegKey;
 
@@ -175,14 +176,32 @@ fn uninstall<'a, F: FnMut(&str)>(mut log: F) -> Result<String, String> {
 
     if dest_path.exists() {
         log("自己削除プロセスを起動しています...");
-        // Self-delete by spawning a command prompt
+        let current_pid = process::id();
+        // Self-delete by spawning a powershell script in a new console window
         let script = format!(
-            "timeout /t 2 /nobreak > NUL && del \"{}\" && rmdir \"{}\"",
-            dest_path.display(),
+            "Start-Sleep -Seconds 2; \
+            Write-Host 'Waiting for LineCloser installer (PID: {}) to exit...'; \
+            Wait-Process -Id {} -ErrorAction SilentlyContinue; \
+            Write-Host 'Installer process exited.'; \
+            Write-Host 'Attempting to remove directory: {}'; \
+            Remove-Item -Recurse -Force -Path '{}'; \
+            if (Test-Path -Path '{}') {{ \
+                Write-Host 'Failed to remove directory.'; \
+            }} else {{ \
+                Write-Host 'Successfully removed directory.'; \
+            }} \
+            Write-Host 'Press Enter to exit.'; \
+            Read-Host;",
+            current_pid,
+            current_pid,
+            install_dir.display(),
+            install_dir.display(),
             install_dir.display()
         );
-        Command::new("cmd")
-            .args(&["/C", &script])
+
+        Command::new("powershell")
+            .args(&["-NoProfile", "-Command", &script])
+            .creation_flags(0x00000010) // CREATE_NEW_CONSOLE
             .spawn()
             .map_err(|e| format!("自己削除プロセスの起動に失敗しました: {}", e))?;
 
