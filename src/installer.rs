@@ -111,8 +111,8 @@ pub fn run_gui() {
 }
 
 fn get_install_path() -> Result<PathBuf, String> {
-    if let Some(proj_dirs) = ProjectDirs::from("com", "hrko", APP_NAME) {
-        Ok(proj_dirs.data_dir().to_path_buf())
+    if let Some(proj_dirs) = ProjectDirs::from("jp", "hrko", APP_NAME) {
+        Ok(proj_dirs.data_local_dir().to_path_buf())
     } else {
         Err("Could not find user's data directory.".to_string())
     }
