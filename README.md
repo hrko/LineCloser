@@ -48,7 +48,7 @@ Windowsの「設定」>「アプリ」>「インストールされているア�
 
 インストーラーは以下の処理を実行します。
 
-1.  **ファイルのコピー**: 実行ファイル自身を`%APPDATA%\com.hrko.LineCloser\`にコピーします。
+1.  **ファイルのコピー**: 実行ファイル自身を`%LOCALAPPDATA%\hrko\LineCloser\data\`にコピーします。
 2.  **アンインストールスクリプトの生成**: 同ディレクトリにアンインストール用のPowerShellスクリプト（`uninstall.ps1`）を生成します。
 3.  **レジストリ登録（アンインストール情報）**: Windowsの「アプリと機能」に表示させるため、`HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\LineCloser`に必要な情報を登録します。
 4.  **レジストリ登録（スタートアップ）**: Windows起動時に実行されるよう、`HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`に、コピーした実行ファイルのパスとタイムアウト引数を登録します。
