@@ -17,7 +17,7 @@ const APP_NAME: &str = "LineCloser";
 
 #[derive(Default, NwgUi)]
 pub struct InstallerGui {
-    #[nwg_control(size: (400, 200), position: (300, 300), title: "LineCloser Installer", flags: "WINDOW|VISIBLE")]
+    #[nwg_control(size: (600, 200), position: (300, 300), title: "LineCloser Installer", flags: "WINDOW|VISIBLE")]
     #[nwg_events( OnWindowClose: [nwg::stop_thread_dispatch()] )]
     window: nwg::Window,
 
@@ -33,18 +33,18 @@ pub struct InstallerGui {
     timeout_input: nwg::TextInput,
 
     #[nwg_control(text: "Install / Update")]
-    #[nwg_layout_item(layout: grid, row: 1, col: 0, col_span: 2)]
+    #[nwg_layout_item(layout: grid, row: 1, col: 0)]
     #[nwg_events( OnButtonClick: [InstallerGui::install_clicked] )]
     install_button: nwg::Button,
 
     #[nwg_control(text: "Uninstall")]
-    #[nwg_layout_item(layout: grid, row: 2, col: 0, col_span: 2)]
+    #[nwg_layout_item(layout: grid, row: 1, col: 1)]
     #[nwg_events( OnButtonClick: [InstallerGui::uninstall_clicked] )]
     uninstall_button: nwg::Button,
 
-    #[nwg_control(text: "")]
-    #[nwg_layout_item(layout: grid, row: 3, col: 0, col_span: 2)]
-    status_label: nwg::Label,
+    #[nwg_control(text: "", readonly: true)]
+    #[nwg_layout_item(layout: grid, row: 2, col: 0, row_span: 2, col_span: 2)]
+    status_label: nwg::TextBox,
 }
 
 impl InstallerGui {
